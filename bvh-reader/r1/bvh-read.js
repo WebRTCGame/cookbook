@@ -88,28 +88,73 @@
 	    	if ( threeD.scene.children.length > 1 ) {
 				threeD.scene.remove( threeD.scene.children[2] );
 			}
-	    
-		var _this = Bvh;
-		_this.data = data.split(/\s+/g);
-		//console.log(JSON.stringify(_this.data));
-		_this.channels = [];
-		var done = false;
-		while (!done) {
-			switch (_this.data.shift()) {
-			case 'ROOT':
-			//    _this.parseNode(_this.data);
-				_this.root = _this.parseNode(_this.data);
-				threeD.scene.add(_this.root);
-				break;
-			case 'MOTION':
-				_this.data.shift();
-				_this.numFrames = parseInt( _this.data.shift() );
-				_this.data.shift();
-				_this.data.shift();
-				_this.secsPerFrame = parseFloat(_this.data.shift());
-			//	console.log(JSON.stringify(_this.data));
-				done = true;
-			}
+	    var _this = Bvh;
+	    _this.data = data.split(/\s+/g);
+	    //console.log(JSON.stringify(_this.data));
+	    _this.channels = [];
+	    var done = false;
+	    while (!done) {
+	        switch (_this.data.shift()) {
+	        case 'ROOT':
+	            //    _this.parseNode(_this.data);
+	            _this.root = _this.parseNode(_this.data);
+
+	            console.log("--------------------------------------------------");
+
+
+	           // var lshldrPos;
+	           // var lforearmPos;
+	            //var lThigh = new THREE.Vector3();
+	           // var lShinPos = new THREE.Vector3();
+	           // var lFootPos = new THREE.Vector3();
+	            
+	            _this.root.traverse(
+
+	            function(child) {
+	                _this.root[child.name] = function (){return child};
+	                /*
+	                console.log("Name: " + child.name + " Pos: x:" + child.position.x + " y: " + child.position.y + " z: " + child.position.z);
+
+	                if (child.name == "lShin") {
+	                    console.log("asdfklnawe;lnf");
+	                    lShinPos = child.position.clone();
+	                    console.log(lShinPos.x);
+	                }
+	                */
+	            })
+console.log("xxxxxxxx " + JSON.stringify(_this.root["lThigh"]));
+	            console.log("about to add to scene");
+
+
+	            var temparray = [];
+	            _this.root.getDescendants(temparray);
+
+	            var formattedData = {};
+	            for (var i = 0; i < temparray.length; i++) {
+	                //console.log("Name: " + temparray[i].name + " Pos: " + temparray[i].position.x);
+	                //var position = new THREE.Vector3();
+//position.getPositionFromMatrix( temparray[i].matrixWorld );
+	                formattedData[temparray[i].name] = temparray[i].position.clone();
+	            }
+	            console.log(JSON.stringify(formattedData));
+	            var thighmesh = threeD.makeCube(formattedData["lThigh"], formattedData["lShin"]);
+	            thighmesh.translateY(4);
+	            threeD.scene.add(thighmesh);
+	            
+	            //console.log(temparray[0].name);
+
+	            console.log("adding root");
+	            threeD.scene.add(_this.root);
+	            break;
+		case 'MOTION':
+		_this.data.shift();
+		_this.numFrames = parseInt(_this.data.shift());
+		_this.data.shift();
+		_this.data.shift();
+		_this.secsPerFrame = parseFloat(_this.data.shift());
+		//	console.log(JSON.stringify(_this.data));
+		done = true;
+		}
 		}
 	//	_this.root.material = new THREE.MeshBasicMaterial({ color: 0xff0000});
 		_this.startTime = Date.now();
